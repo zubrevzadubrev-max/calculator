@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Красивый калькулятор</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .calculator {
+            background: #2C3E50;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 360px;
+            max-width: 100%;
+        }
+
+        .display {
+            background: #34495E;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .history {
+            color: #95A5A6;
+            font-size: 14px;
+            min-height: 20px;
+            text-align: right;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+
+        .result {
+            color: #ECF0F1;
+            font-size: 36px;
+            font-weight: bold;
+            text-align: right;
+            min-height: 43px;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        button {
+            padding: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #ECF0F1;
+            user-select: none;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .number {
+            background: #4A6FA5;
+        }
+
+        .number:hover {
+            background: #5B8BC7;
+        }
+
+        .operator {
+            background: #E67E22;
+        }
+
+        .operator:hover {
+            background: #F39C12;
+        }
+
+        .function {
+            background: #3D5A80;
+        }
+
+        .function:hover {
+            background: #4F7096;
+        }
+
+        .equals {
+            background: #27AE60;
+        }
+
+        .equals:hover {
+            background: #2ECC71;
+        }
+
+        .zero {
+            grid-column: span 2;
+        }
+
+        @media (max-width: 400px) {
+            .calculator {
+                width: 100%;
+            }
+            
+            button {
+                padding: 15px;
+                font-size: 16px;
+            }
+            
+            .result {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display">
+            <div class="history" id="history"></div>
+            <div class="result" id="result">0</div>
+        </div>
+        
+        <div class="buttons">
+            <button class="function" onclick="clearAll()">C</button>
+            <button class="function" onclick="backspace()">⌫</button>
+            <button class="function" onclick="appendOperator('%')">%</button>
+            <button class="operator" onclick="appendOperator('/')">/</button>
+            
+            <button class="number" onclick="appendNumber('7')">7</button>
+            <button class="number" onclick="appendNumber('8')">8</button>
+            <button class="number" onclick="appendNumber('9')">9</button>
+            <button class="operator" onclick="appendOperator('*')">×</button>
+            
+            <button class="number" onclick="appendNumber('4')">4</button>
+            <button class="number" onclick="appendNumber('5')">5</button>
+            <button class="number" onclick="appendNumber('6')">6</button>
+            <button class="operator" onclick="appendOperator('-')">-</button>
+            
+            <button class="number" onclick="appendNumber('1')">1</button>
+            <button class="number" onclick="appendNumber('2')">2</button>
+            <button class="number" onclick="appendNumber('3')">3</button>
+            <button class="operator" onclick="appendOperator('+')">+</button>
+            
+            <button class="function" onclick="negate()">±</button>
+            <button class="number zero" onclick="appendNumber('0')">0</button>
+            <button class="number" onclick="appendNumber('.')">.</button>
+            <button class="equals" onclick="calculate()">=</button>
+        </div>
+    </div>
+
+    <script>
+        let currentExpression = '';
+        let lastResult = '';
+
+        function updateDisplay() {
+            document.getElementById('result').textContent = currentExpression || '0';
+        }
+
+        function appendNumber(number) {
+            if (lastResult && currentExpression === lastResult) {
+                currentExpression = number;
+            } else {
+                currentExpression += number;
+            }
+            lastResult = '';
+            updateDisplay();
+        }
+
+        function appendOperator(operator) {
+            if (currentExpression === '' && operator !== '-') return;
+            
+            const lastChar = currentExpression.slice(-1);
+            if (['+', '-', '*', '/', '%'].includes(lastChar)) {
+                currentExpression = currentExpression.slice(0, -1);
+            }
+            
+            currentExpression += operator;
+            lastResult = '';
+            updateDisplay();
+        }
+
+        function calculate() {
+            try {
+                let expression = currentExpression;
+                expression = expression.replace(/×/g, '*');
+                expression = expression.replace(/%/g, '/100');
+                
+                if (!expression) return;
+                
+                const result = eval(expression);
+                
+                document.getElementById('history').textContent = currentExpression + ' =';
+                
+                if (result === Infinity || result === -Infinity) {
+                    currentExpression = 'Ошибка';
+                } else {
+                    currentExpression = Number.isInteger(result) ? 
+                        result.toString() : 
+                        parseFloat(result.toFixed(10)).toString();
+                    lastResult = currentExpression;
+                }
+                
+                updateDisplay();
+            } catch (error) {
+                document.getElementById('history').textContent = 'Ошибка вычисления';
+                currentExpression = 'Ошибка';
+                updateDisplay();
+                setTimeout(() => {
+                    clearAll();
+                }, 1000);
+            }
+        }
+
+        function clearAll() {
+            currentExpression = '';
+            lastResult = '';
+            document.getElementById('history').textContent = '';
+            updateDisplay();
+        }
+
+        function backspace() {
+            currentExpression = currentExpression.slice(0, -1);
+            updateDisplay();
+        }
+
+        function negate() {
+            if (currentExpression) {
+                if (currentExpression.startsWith('-')) {
+                    currentExpression = currentExpression.slice(1);
+                } else {
+                    currentExpression = '-' + currentExpression;
+                }
+                updateDisplay();
+            }
+        }
+
+        // Поддержка клавиатуры
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '0' && e.key <= '9') {
+                appendNumber(e.key);
+            } else if (e.key === '.') {
+                appendNumber('.');
+            } else if (['+', '-', '*', '/'].includes(e.key)) {
+                appendOperator(e.key);
+            } else if (e.key === '%') {
+                appendOperator('%');
+            } else if (e.key === 'Enter' || e.key === '=') {
+                calculate();
+            } else if (e.key === 'Backspace') {
+                backspace();
+            } else if (e.key === 'Escape') {
+                clearAll();
+            }
+        });
+    </script>
+</body>
+</html>
